@@ -1,3 +1,4 @@
-desktop.ini
+*.private.*
 */keys.js
+desktop.ini
 img/*
