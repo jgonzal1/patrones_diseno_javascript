@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Test Suite</title>
+<link rel="stylesheet" href="qUnit.css">
+<body>
+  <div id="qunit"></div>
+  <div id="more"></div>
+  <script src="qUnit.js"></script>
+  <script>
+    //#region Requirements
+    const verbose = false;
+    const env = 'pro'; // 'dev', 'hybrid' o 'pro'
+    const routes = {
+      'dev': {
+        'sections': 'projects-sections',
+        'settings': 'projects-sections',
+        'users': 'users-crud',
+        'alerts': 'flow.xpertraffic.com',
+        'use_https': false,
+        'use_port': true
+      },
+      'hybrid': {
+        'sections': 'flow.xpertraffic.com', //!
+        'settings': 'flow.xpertraffic.com', //!
+        'users': 'users-crud',
+        'alerts': 'flow.xpertraffic.com', //!
+        'use_https': false,
+        'use_port': true
+      },
+      'pro': {
+        'sections': 'flow.xpertraffic.com',
+        'settings': 'flow.xpertraffic.com',
+        'users': 'flow.xpertraffic.com',
+        'alerts': 'flow.xpertraffic.com',
+        'use_https': true,
+        'use_port': false
+      }
+    }
+
+    /** @param {object} options "https://flow.xpertraffic.com/api/sections" */
+    function fetchRequestSender(options, callback) {
+      if(verbose) {
+        console.trace(options.body);
+        console.trace(typeof(options.body));
+        console.trace(JSON.stringify(options.body));
+      }
+      const url = "http" + (routes[env].use_https?"s":"") + "://" + options.hostname + (routes[env].use_port?":"+options.port.toString():"") + options.path;
+      try {
+        // @ts-ignore
+        fetch(url, {
+          "method": options.method,
+          "headers": {
+            'Content-Type': 'application/json'
+          },
+          "body": JSON.stringify(options.body) // ! body o data
+        })
+        .then(result => {
+          if(options.method === "DELETE") {
+            return {"deletion path": options.path}
+          } else {
+            return result.json()
+          }
+        })
+        .then(
+          results => {
+            if(verbose) {
+              console.trace(results);
+            }
+            callback(results);
+          }
+        );
+      } catch(e) {
+        callback({"error":e});
+      }
+    }
+
+    const databaseHandler = {
+      /**
+       * @param {Function} callback JSON
+       */
+      getProjects: function(callback) {
+        fetchRequestSender(
+          {
+            hostname: routes[env].sections,
+            port: 8000,
+            path: '/api/sections',
+            method: 'GET'
+          },
+          function(results) { callback(results); }
+        )
+      },
+      getUniqueProjects: function(callback) {
+        fetchRequestSender(
+          {
+            hostname: routes[env].sections,
+            port: 8000,
+            path: '/api/sections',
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          },
+          function(projects){
+            if(!Array.isArray(projects)) {
+              return false;
+            }
+            const projectList = projects.map(project=>project.nombre_proyecto);
+            const uniqueProjectList = [...new Set(projectList)];
+            callback(uniqueProjectList)
+          }
+        )
+      },
+      /**
+       * @param {string} id 
+       * @param {Function} callback string
+       */
+      getFirstProject: function(id, callback) {
+        fetchRequestSender(
+          {
+            hostname: routes[env].sections,
+            port: 8000,
+            path: '/api/sections?idsection='+id,
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          },
+          function(projectOnChild) {
+            callback(projectOnChild[0])
+          }
+        )
+      },
+      /**
+       * @param {string} section - se pasa a JSON:
+       * ```js
+       * {"apikey": "", "directions": "", "doble_sentido": 0,
+       *  "duration_diff": 0, "idProject": 0, "nombre_proyecto": "",
+       *  "submission_date": new Date().toISOString(), "tramos":
+       *  {"n_row": "1", "nombre_tramo": "PK00 a PK04", "tipo_tramo": "increasing",
+       *   "tr_i": "0", "tr_f": "4", "lat_i": "40.509307", "lng_i": "-3.658375",
+       *   "lat_f": "40.478200", "lng_f": "-3.639990", "\r": "\r"
+       * }}
+       * ```
+       * @param {Function} callback stringified JSON:
+       * ```js
+       * "directions": [{ "legs": [{
+       *   "distance":{"text":"4.1km","value":4133},"duration":{"text":"2mins","value":145},
+       *   "duration_in_traffic":{"text":"3mins","value":175},
+       *   "steps":[{"polyline":{"points":""}}],"traffic_speed_entry":[],"via_waypoint":[]
+       *  }],
+       *  "overview_polyline":{"points":""},"summary":"M-40","warnings":[],"waypoint_order":[]
+       * }]
+       * ```
+       */
+      postProjects: function(section, callback) {
+        fetchRequestSender(
+          {
+            hostname: routes[env].sections,
+            port: 8000,
+            path: '/api/sections',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: section
+          },
+          function(postStatus) {
+            callback(postStatus)
+          }
+        );
+      },
+      /**
+       * @param {object} section which is parsed to JSON
+       * @param {Function} callback 
+       */
+      putProjects: function(section, callback) {
+        const idSection = section?.idSection??0;
+        fetchRequestSender(
+          {
+            hostname: routes[env].sections,
+            port: 8000,
+            path: '/api/sections/'+idSection,
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: section
+          },
+          function(putStatus) {
+            callback(putStatus)
+          }
+        );
+      },
+      /**
+       * @param {number} idSection
+       * @param {Function} callback 
+       */
+      deleteProject: function(idSection, callback) {
+        fetchRequestSender(
+          {
+            hostname: routes[env].sections,
+            port: 8000,
+            path: '/api/sections/'+idSection.toString(),
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          },
+          function(deleteStatus) {
+            callback(deleteStatus);
+          }
+        );
+      },
+      getSettings: function(callback) {
+        fetchRequestSender(
+          {
+            hostname: routes[env].settings,
+            port: 8000,
+            path: '/api/projects',
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          },
+          function jsonizeSectionsIfNeeded(apparentlyStringifiedUsers) {
+            let users;
+            if (
+              (apparentlyStringifiedUsers?.[0]?.constructor??false) !== ({}).constructor
+            ) {
+              if(verbose) {
+                console.trace(apparentlyStringifiedUsers);
+              }
+              users = JSON.parse(apparentlyStringifiedUsers);
+            } else { //could be already a JSON
+              users = apparentlyStringifiedUsers;
+            }
+            callback(users);
+          }
+        );
+      },
+      /**
+       * @param {string} post_body has numeric idProject and is converted to
+       * ```json
+       * { }
+       * ```
+       * @param {Function} callback 
+       */
+      postSetting: function(post_body, callback) {
+        if(verbose) {
+          console.trace(`Posting idProject ${JSON.parse(post_body).idProject.toString()}`);
+        }
+        fetchRequestSender(
+          {
+            hostname: routes[env].settings,
+            port: 8000,
+            path: '/api/projects',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+              ,'Content-Length': post_body.length
+            },
+            body: post_body
+          },
+          function(postStatus) {
+            callback(postStatus);
+          }
+        );
+      },
+      /**
+       * @param {Object} put_body which is converted to JSON
+       * @param {Function} callback 
+       */
+      putSetting: function(put_body, callback) {
+        //const put_body_as_json = JSON.parse(put_body);
+        if(verbose) {
+          console.trace(put_body);
+        }
+        // put_body.idProject = parseInt(put_body.idProject,10);
+        const idProject = put_body.idProject;
+        const options = {
+          hostname: routes[env].settings,
+          port: 8000,
+          path: '/api/projects/'+idProject.toString(),
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+            ,'Content-Length': put_body.length
+          },
+          body: put_body
+        }
+        fetchRequestSender(
+          options,
+          function(putStatus) {
+            callback(putStatus)
+          }
+        );
+      },
+      /**
+       * @param {number} idProject
+       * @param {Function} callback 
+       */
+      deleteSetting: function(idProject, callback) {
+        fetchRequestSender(
+          {
+            hostname: routes[env].settings,
+            port: 8000,
+            path: '/api/projects/'+idProject.toString(),
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          },
+          function(deleteStatus) {
+            callback(deleteStatus);
+          }
+        );
+      },
+      getUsers: function(callback) {
+        fetchRequestSender(
+          {
+            hostname: routes[env].users,
+            port: 8080,
+            path: '/api/users',
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          },
+          function jsonizeUsersIfNeeded(apparentlyStringifiedUsers) {
+            let users;
+            if ( //it's already a JSON
+              (apparentlyStringifiedUsers?.[0]?.constructor??false)
+              === ({}).constructor
+            ) {
+              users = apparentlyStringifiedUsers;
+            } else { 
+              if(verbose) {
+                console.trace(apparentlyStringifiedUsers);
+              }
+              try {
+                JSON.parse(apparentlyStringifiedUsers);
+              } catch(e) { // is JSON but wtf how
+                users = apparentlyStringifiedUsers;
+              }
+            }
+            callback(users);
+          }
+        );
+      },
+      postUser: function(post_body, callback) {
+        if(verbose) {
+          console.trace(`Posting id ${JSON.parse(post_body).id}`);
+        }
+        fetchRequestSender(
+          {
+            hostname: routes[env].settings,
+            port: 8080,
+            path: '/api/users',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+              ,'Content-Length': post_body.length
+            },
+            body: post_body
+          },
+          function(postStatus) {
+            callback(postStatus);
+          }
+        );
+      },
+      /**
+       * @param {Object} put_body which is converted to JSON
+       * @param {Function} callback 
+       */
+      putUser: function(put_body, callback) {
+        //const put_body_as_json = JSON.parse(put_body);
+        if(verbose) {
+          console.trace(put_body);
+        }
+        const id = put_body.id;
+        const options = {
+          hostname: routes[env].settings,
+          port: 8080,
+          path: '/api/users/'+id,
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+            ,'Content-Length': put_body.length
+          },
+          body: put_body
+        }
+        fetchRequestSender(
+          options,
+          function(putStatus) {
+            callback(putStatus)
+          }
+        );
+      },
+      /**
+       * @param {number} id
+       * @param {Function} callback 
+       */
+      deleteUser: function(id, callback) {
+        fetchRequestSender(
+          {
+            hostname: routes[env].settings,
+            port: 8080,
+            path: '/api/users/'+id,
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          },
+          function(deleteStatus) {
+            callback(deleteStatus);
+          }
+        );
+      },
+      getAlerts: function(callback) {
+        // @ts-ignore
+        false&&fetch("http://"+routes[env].alerts+":2000/api/v1/consulting/csv/historicals ", {
+          "method": "GET",
+          "headers": {
+            'Content-Type': 'application/json',
+            'x-Auth-token': '6b1b69274d077351f0620a9c5bda3dda427fa00d'
+            //localStorage.getItem('access_token')
+          }
+        }).then((res) => callback(res)).catch((error) => error.response);
+        /*axios.get(endPoint.concat('historicals'), {
+          headers: { 'x-Auth-token': localStorage.getItem('access_token') },
+          params: { ...payload },
+        }).catch((error) => error.response);
+        */
+      }
+    }
+    //#endregion
+    QUnit.module('truth', function() {
+      QUnit.test('True is True', function(assert) {
+        assert.equal(true, true);
+      });
+    });
+    //#region Sections (Projects)
+    const projectToHandle = localStorage.getItem("projectToHandle") - 1;
+    localStorage.setItem("projectToHandle", projectToHandle);
+    databaseHandler.getProjects(function(allSections){
+      QUnit.module('getProjects', function() {
+        QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+          assert.equal(allSections[0].constructor, ({}).constructor);
+        });
+      });
+      databaseHandler.deleteProject(projectToHandle,function(results){
+        QUnit.module('deleteProject', function() {
+          QUnit.test('should get the delete key response', function(assert) {
+            assert.equal(Object.keys(results)[0], "deletion path");
+          });
+        });
+      });
+      allSections.filter(project=>project.idSection===projectToHandle).map(projectToHandle => {
+        projectToHandle["tramos"]["\r"] = "\r";
+        const rowResult = JSON.stringify(projectToHandle);
+        databaseHandler.postProjects(rowResult, function(results){
+          QUnit.module('postProjects', function() {
+            QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+              assert.equal(results.constructor, ({}).constructor);
+            });
+          });
+          databaseHandler.getProjects(function(allSections){
+            const projectToPut = allSections[allSections.length-1];
+            projectToPut.submission_date = new Date();
+            databaseHandler.putProjects(projectToPut, function(results){
+              QUnit.module('putProjects', function() {
+                QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+                  assert.equal(results.constructor, ({}).constructor);
+                });
+              });
+            });
+          }, 1000)
+        });
+      });
+    });
+    databaseHandler.getUniqueProjects(function(results){
+      QUnit.module('getUniqueProjects', function() {
+        QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+          assert.equal(Array.isArray(results), true);
+        });
+      });
+    })
+    databaseHandler.getFirstProject("MA-20",function(results){
+      QUnit.module('getFirstProject', function() {
+        QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+          assert.equal(results.constructor, ({}).constructor);
+        });
+      });
+    })
+    //#endregion
+
+    //#region Settings
+    databaseHandler.getSettings(function(allSettings){
+      QUnit.module('getSettings', function() {
+        QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+          assert.equal(Array.isArray(allSettings), true);
+        });
+      });
+      const idProject = 73092375; //MA-20
+      databaseHandler.deleteSetting(
+        idProject,
+        function(results){
+        QUnit.module('deleteSetting', function() {
+          QUnit.test('should get the delete key response', function(assert) {
+            assert.equal(Object.keys(results)[0], "deletion path");
+          });
+        });
+        let contentsToPostAsJson = allSettings.filter(setting=>setting.idProject===idProject).map(settingToHandle => {
+          settingToHandle.idProject = idProject;
+          databaseHandler.postSetting(JSON.stringify(settingToHandle),function(results){
+            QUnit.module('postSetting', function() {
+              QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+                assert.equal(results.constructor, ({}).constructor);
+              });
+            });
+            settingToHandle.startTime = settingToHandle.startTime.substring(0,settingToHandle.startTime.length-1)+"1";
+            databaseHandler.putSetting(settingToHandle,function(results){
+              QUnit.module('putSetting', function() {
+                QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+                  assert.equal(results.constructor, ({}).constructor);
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+    //#endregion
+
+    //#region Users
+    databaseHandler.getUsers(function(allUsers){
+      QUnit.module('getSettings', function() {
+        QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+          assert.equal(Array.isArray(allUsers), true);
+        });
+      });
+      const id = 'CoexMA2@ferrovial.com';
+      databaseHandler.deleteUser(id,function(results){
+        QUnit.module('deleteUser', function() {
+          QUnit.test('should get the delete key response', function(assert) {
+            assert.equal(Object.keys(results)[0], "deletion path");
+          });
+        });
+        let contentsToPostAsJson = allUsers.filter(user=>user.id===id).map(userToHandle => {
+          databaseHandler.postUser(JSON.stringify(userToHandle),function(results){
+            QUnit.module('postUser', function() {
+              QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+                assert.equal(results.constructor, ({}).constructor);
+              });
+            });
+            userToHandle.datepassword = new Date().toISOString().substring(0,19).replace("T"," ");
+            databaseHandler.putUser(userToHandle,function(results){
+              QUnit.module('putUser', function() {
+                QUnit.test('should get an array (inside would be a JSON)', function(assert) {
+                  assert.equal(results.constructor, ({}).constructor);
+                });
+              });
+            });
+          });
+        });
+      });
+    })
+    //#endregion
+
+    //#region Alerts
+    /*
+      databaseHandler.getAlerts(function(results){
+        console.log(`getAlerts results: ${
+          JSON.stringify(results).substring(0,Math.min(JSON.stringify(results).length,100))
+        }`)
+      })
+    */
+  </script>
+</body>

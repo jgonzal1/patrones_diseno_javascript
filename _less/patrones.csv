@@ -1,0 +1,13 @@
+IncluirEn,Patrón                               ,#Lb,Descr
+async fxs,Patrón de Encadenamiento asíncrono   ,15 ,Haz que una función asíncrona realice una serie de tareas que deben ser ejecutadas una detrás de otra normalmente
+fxs      ,Patrón de Adaptador                  ,7  ,Acepta diferentes interfaces para convertirlas en una clase común con la que operar después
+fxs      ,Patrón de Existencia única           ,3  ,Crea una instancia de un objeto con un getter que evalúa si no existe para ejecutarse; de lo contrario no hace nada
+fxs      ,Patrón de Mediador                   ,18 ,Acepta 2 interfaces para administrar cómo relacionarlas entre sí
+fxs      ,Patrón de Observador                 ,20 ,Encapsula los escuchadores de eventos en funciones con este patrón; podría hacer cambiar estados en consecuencia; idealmente llamando a otra función que siga patrones de manejador de estado
+fxs;arr  ,Patrón de Iterador                   ,17 ,Crea una función capaz de iterar sobre un parámetro que se le mande; o que genere dicha iteración; de forma aislada.
+fxs;json ,Patrón de Clonación "profunda"       ,10 ,Crea una función que permite copiar un objeto con todos sus elementos; tipos y referencias. De esta manera nos aseguramos que al cambiar una variable no se afectan sus copias; como hace JavaScript de una forma que puede ser contraintuitiva
+fxs;json ,Patrón de Constructor                ,6  ,Crea un objeto capaz de generar de cero elementos de forma independiente
+fxs;json ,Patrón de Estrategia común o factoría,1;5,Encapsula objetos o algoritmos dentro de una clase con una estrategia común; con una familia de algoritmos intercambiables en su forma de ser usados
+fxs!&json,Patrón de Manejador de estado        ,22 ,Encapsula funciones que cambian el estado o la estructura de otros objetos de la manera más descriptiva y sencilla posible; sin efectos secundarios
+json     ,Patrón de Composición en árbol       ,2  ,Programa un encapsulador de objetos en una estructura jerárquica de árbol para encontrar y organizar mejor los métodos
+todos    ,Patrón de Plantilla                  ,4  ,Crea un objeto que puede usarse para luego ser expandido con características específicas
