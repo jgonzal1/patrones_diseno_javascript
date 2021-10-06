@@ -4,9 +4,9 @@ const assets = {
    * @returns elemento h1 que dice `cadenaAEscribir`
    */
   constructorDeElementoH1 : function(cadenaAEscribir){
-    const p = document.createElement("h1");
-    p.innerText = cadenaAEscribir;
-    document.body.appendChild(p);
+    const h1 = document.createElement("h1");
+    h1.innerText = cadenaAEscribir;
+    document.body.appendChild(h1);
   },
   /**
    * @param {string} el texto que se vaya a mostrar
@@ -15,10 +15,50 @@ const assets = {
   constructorDeElementoP : function(cadenaAEscribir){
     const p = document.createElement("p");
     p.innerText = cadenaAEscribir;
+    p.id = Math.random().toString();
     document.body.appendChild(p);
+  },
+  /**
+   * @param {string} el texto que se vaya a mostrar
+   * @returns elemento p que dice `cadenaAEscribir`
+   */
+  constructorDeElementoPAsincrono : function(cadenaAEscribir){
+    setTimeout(
+      ()=>this.constructorDeElementoP("Hoola, soy asíncrono")
+      ,3000
+    )
+  },
+  /**
+   * @param {string} urlDeLaImagen dirección web donde apunta
+   * @returns elemento img de la `urlDeLaImagen` aportada
+   */
+  constructorDeElementoImagen : function(urlDeLaImagen){
+    const img = document.createElement("img");
+    img.src = urlDeLaImagen;
+    document.body.appendChild(img);
   },
   factoriaDeElementosDom: function() {
     this.constructorDeElementoH1("Bienvenidos a esta página web");
     this.constructorDeElementoP("Hola, me llamo Javier");
-  }
+    this.constructorDeElementoImagen(
+      "https://cdn.pixabay.com/photo/" +
+      "2021/08/23/21/12/duckling-6568845_960_720.jpg"
+    );
+  },
+  iteradorDeVectorLongitudDiez: function() {
+    return Array.from(
+      Array(10), (_,i) => {
+        this.constructorDeElementoP(
+          "Me gusta programar en JavaScript"
+        )
+      }
+    );
+  },
+  plantillaDePersonaIndecisa: function() {
+    const plantilla = this.iteradorDeVectorLongitudDiez();
+    plantilla[plantilla.length-1] = this.constructorDeElementoP(
+      "No me gusta programar en JavaScript"
+    );
+  },
+
 }
