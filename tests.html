@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Test Suite</title>
+<link rel="stylesheet"
+  href="https://code.jquery.com/qunit/qunit-2.17.2.css"
+>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <div id="elementoATestear"></div>
+  <script src="https://code.jquery.com/qunit/qunit-2.17.2.js">
+  </script>
+  <script src="./assets.js"></script>
+  <script>
+    QUnit.module('Comprobadores de elementos dom', function() {
+      QUnit.test(
+        'Comprobador del elementoATestear',
+        function(assert) {
+          assert.equal(
+            assets.funcionATestear('elementoATester'),
+            document.getElementById('elementoATestear')
+          );
+        }
+      );
+    });
+  </script>
+</body>

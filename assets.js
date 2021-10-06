@@ -63,5 +63,14 @@ const assets = {
       "No me gusta programar en JavaScript"
     );
   },
-
+  /**
+   * @param {string} id
+   * @returns {Object|Boolean}
+   */
+  funcionATestear: function(id) {
+    const textoDelementoDom = document.getElementById(
+      id
+    )??false;
+    return textoDelementoDom;
+  }
 }
