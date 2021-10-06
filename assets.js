@@ -21,17 +21,15 @@ const assets = {
     return id;
   },
   /**
-   * @param {string} el texto que se vaya a mostrar
-   * @returns elemento p que dice `cadenaAEscribir`
+   * @param {Function} callback permite tratar la asincronía
    */
-  constructorDeElementoPAsincrono : function(cadenaAEscribir, callback){
+  plantillaAsincronia : function(callback){
     setTimeout(
       ()=>{
-        const id = this.constructorDeElementoP(cadenaAEscribir);
-        callback(id);
+        callback("Hola, me ejecuto de forma asíncrona");
       }
       ,3000
-    )
+    );
   },
   /**
    * @param {string} urlDeLaImagen dirección web donde apunta
