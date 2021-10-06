@@ -1,3 +1,3 @@
 assets.factoriaDeElementosDom();
 assets.plantillaDePersonaIndecisa();
-assets.constructorDeElementoPAsincrono();
+assets.plantillaAsincronia((cadenaDeTexto)=>alert(cadenaDeTexto));
