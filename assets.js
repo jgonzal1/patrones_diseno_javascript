@@ -10,21 +10,26 @@ const assets = {
   },
   /**
    * @param {string} el texto que se vaya a mostrar
-   * @returns elemento p que dice `cadenaAEscribir`
+   * @returns id del elemento p que dice `cadenaAEscribir`
    */
   constructorDeElementoP : function(cadenaAEscribir){
     const p = document.createElement("p");
     p.innerText = cadenaAEscribir;
-    p.id = Math.random().toString();
+    const id = Math.random().toString().substring(2);
+    p.id = id;
     document.body.appendChild(p);
+    return id;
   },
   /**
    * @param {string} el texto que se vaya a mostrar
    * @returns elemento p que dice `cadenaAEscribir`
    */
-  constructorDeElementoPAsincrono : function(cadenaAEscribir){
+  constructorDeElementoPAsincrono : function(cadenaAEscribir, callback){
     setTimeout(
-      ()=>this.constructorDeElementoP("Hoola, soy asíncrono")
+      ()=>{
+        const id = this.constructorDeElementoP(cadenaAEscribir);
+        callback(id);
+      }
       ,3000
     )
   },
