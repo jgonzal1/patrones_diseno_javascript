@@ -1,0 +1,5 @@
+Constructor
+Factoría
+Iterador
+Manejador de estado
+Plantilla
